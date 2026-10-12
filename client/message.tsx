@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { MessageData } from "../shared/message";
 import type { ObsidianLink } from "../shared/obsidian-link";
 import { Markdown } from "./markdown";
-import { openObsidianLink } from "./open-obsidian";
+import { openObsidianLink, type OpenOutcome } from "./open-obsidian";
 
 /**
  * A message that mentions an Obsidian link, drawn with a button per link.
@@ -15,25 +15,31 @@ import { openObsidianLink } from "./open-obsidian";
  * The transformer only sends messages here that carry such a link, so the
  * Markdown above the buttons is this plugin's rendering of the same text.
  */
-export function MessageItem({ item, theme, layout }: PluginTimelineItemProps<MessageData>) {
+export function MessageItem({ item, theme, layout, host }: PluginTimelineItemProps<MessageData>) {
   const { text, links } = item.data;
   const [pendingUri, setPendingUri] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
 
   const byHref = useMemo(() => new Map(links.map((link) => [link.href, link])), [links]);
 
-  const open = useCallback(async (link: ObsidianLink) => {
-    setPendingUri(link.uri);
-    setProblem(null);
-    try {
-      const outcome = await openObsidianLink(link);
-      if (!outcome.ok) setProblem(outcome.detail ?? "Obsidian could not be opened.");
-    } catch (error) {
-      setProblem(error instanceof Error ? error.message : String(error));
-    } finally {
-      setPendingUri(null);
-    }
-  }, []);
+  const open = useCallback(
+    async (link: ObsidianLink) => {
+      setPendingUri(link.uri);
+      setProblem(null);
+      setNote(null);
+      try {
+        const outcome = await openObsidianLink(link);
+        if (outcome.ok) setNote(describeOutcome(outcome, host.label));
+        else setProblem(outcome.detail ?? "Obsidian could not be opened.");
+      } catch (error) {
+        setProblem(error instanceof Error ? error.message : String(error));
+      } finally {
+        setPendingUri(null);
+      }
+    },
+    [host.label],
+  );
 
   const onOpenLink = useCallback(
     (href: string) => {
@@ -63,9 +69,25 @@ export function MessageItem({ item, theme, layout }: PluginTimelineItemProps<Mes
           onPress={() => void open(link)}
         />
       ))}
+      {note !== null && <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12.5 }}>{note}</Text>}
       {problem !== null && <Text style={{ color: theme.colors.statusDanger, fontSize: 12.5 }}>{problem}</Text>}
     </View>
   );
+}
+
+/**
+ * Where the click ended up. A daemon that cannot open apps used to answer
+ * "opened" and leave the row silent, which reads exactly like a broken button.
+ */
+function describeOutcome(outcome: OpenOutcome, hostLabel: string): string | null {
+  if (outcome.via === "daemon") return `Opened on ${hostLabel}.`;
+  if (outcome.via === "device") return "Opened on this device.";
+  if (outcome.via === "browser") {
+    return outcome.detail
+      ? `Opened in your browser instead. ${outcome.detail}`
+      : "Opened in your browser instead.";
+  }
+  return null;
 }
 
 interface ButtonProps {

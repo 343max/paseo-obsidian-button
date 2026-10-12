@@ -46,7 +46,9 @@ Paseo's own external opener accepts `http(s)` URLs only, so an `obsidian://` URL
 
 When the daemon cannot do that (remote daemon, no Obsidian, unknown platform), a redirect-service link falls back to the browser through the app's own opener, and a bare `obsidian://` link reports the failure on the row. On iOS and Android the app opens the URI itself.
 
-A headless daemon is the common case for the fallback: `xdg-open` is installed but has no desktop session to hand the URI to, so the button opens the redirect link in the browser of whichever device you are looking at.
+A daemon without a desktop session answers "no" immediately instead of trying. That check exists because `xdg-open` on such a host does not fail: it falls back to a text browser, takes seconds, and exits 0 having opened nothing, which looks like success to anything watching the exit code.
+
+The row says which route the click took — `Opened on <host>`, `Opened on this device`, or `Opened in your browser instead. <host> has no desktop session…`. A headless daemon is the common case for that last one: the button opens the redirect link in the browser of whichever device you are looking at, and Obsidian opens from that page.
 
 ## Rendering
 

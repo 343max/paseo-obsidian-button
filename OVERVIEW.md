@@ -10,7 +10,7 @@ Each button names the note, and the line under it shows the vault and the path. 
 
 Paseo's own external opener accepts HTTP(S) links only, so an `obsidian://` URL cannot be opened from the app itself. The plugin asks the daemon, which runs on the same machine as the desktop app, to pass the URI to the operating system's URL handler, which launches whichever app registered the `obsidian://` scheme. No browser tab opens in between.
 
-If the daemon cannot do that, a redirect-service link still works: the app hands the HTTPS link to the browser, which forwards it to Obsidian. A direct `obsidian://` link has no such fallback, and the button reports why it failed. On iOS and Android the app opens the URI itself, so it reaches that phone's Obsidian rather than the daemon machine's.
+If the daemon cannot do that, a redirect-service link still works: the app hands the HTTPS link to the browser, which forwards it to Obsidian. A direct `obsidian://` link has no such fallback, and the button reports why it failed. A daemon with no desktop session says so straight away, and the row reports which route the click took. On iOS and Android the app opens the URI itself, so it reaches that phone's Obsidian rather than the daemon machine's.
 
 The daemon needs a URL opener for its platform: `open` on macOS, `xdg-open` on Linux, or `cmd /c start` on Windows. The button works without Obsidian installed, but nothing will appear.
 
