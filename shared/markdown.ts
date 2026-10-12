@@ -10,6 +10,8 @@
  * Pure, synchronous, and length-agnostic: callers memoize on the text.
  */
 
+import { trimLinkMarkup } from "./link-boundary";
+
 export type Inline =
   | { readonly kind: "text"; readonly text: string }
   | { readonly kind: "strong"; readonly content: Inline[] }
@@ -43,8 +45,8 @@ const STRONG = /^(\*\*|__)(?=\S)([\s\S]*?\S)\1/;
 const STRIKE = /^~~(?=\S)([\s\S]*?\S)~~/;
 
 function openLinkHref(raw: string): string {
-  const trailing = raw.replace(/[.,;:!?]+$/, "");
-  return trailing.length > 0 ? trailing : raw;
+  const trimmed = trimLinkMarkup(raw);
+  return trimmed.length > 0 ? trimmed : raw;
 }
 
 /**

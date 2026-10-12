@@ -36,7 +36,7 @@ Both are normalized to a canonical `obsidian://open` URI before anything opens:
 | `https://go.43v.de/open?vault=Bear&file=Notes%2FPlan.md` | `obsidian://open?vault=Bear&file=Notes%2FPlan.md` |
 | any `https://…/open?file=…` link | same rewrite |
 
-Links are found in prose, in inline Markdown (`[label](…)`), and inside a sentence's punctuation. Each distinct URI gets one button; the button shows the note name, the vault, and the path.
+Links are found in prose, in inline Markdown (`[label](…)`), and inside the emphasis, brackets, and sentence punctuation that wrap them — `**[plan](url)**` yields `url`, not `url)**`. Each distinct URI gets one button; the button shows the note name, the vault, and the path.
 
 To recognize another redirect host explicitly, add it to `REDIRECT_HOSTS` in [`shared/obsidian-link.ts`](shared/obsidian-link.ts).
 

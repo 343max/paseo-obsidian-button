@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseInline, parseMarkdown, type Block } from "../shared/markdown";
+import { findObsidianLinks } from "../shared/obsidian-link";
+import { parseInline, parseMarkdown, type Block, type Inline } from "../shared/markdown";
 
 describe("parseMarkdown", () => {
   it("reads headings, paragraphs, and lists", () => {
@@ -36,5 +37,32 @@ describe("parseMarkdown", () => {
   it("leaves unmatched emphasis as text", () => {
     const spans = parseInline("a * b * c and 2 * 3 * 4");
     expect(spans.every((span) => span.kind === "text")).toBe(true);
+  });
+});
+
+describe("link boundaries shared with the transformer", () => {
+  const hrefsIn = (text: string): string[] => {
+    const hrefs: string[] = [];
+    const walk = (spans: Inline[]): void => {
+      for (const span of spans) {
+        if (span.kind === "link") hrefs.push(span.href);
+        else if (span.kind === "strong" || span.kind === "emphasis" || span.kind === "strike") walk(span.content);
+      }
+    };
+    for (const block of parseMarkdown(text)) {
+      if (block.kind === "paragraph" || block.kind === "heading") walk(block.content);
+    }
+    return hrefs;
+  };
+
+  it("trims the same markup from an inline link that the renderer maps by href", () => {
+    const url = "https://go.43v.de/open?vault=Bear&file=pi-agent%2Fplans%2Fdocker%2Fhomeassistant%2Fplan-mode-smoke-test.md";
+    expect(findObsidianLinks(`**[plan](${url})**`)[0]?.href).toBe(url);
+    expect(hrefsIn(`**[plan](${url})**`)).toEqual([url]);
+  });
+
+  it("trims a bold marker after a bare link", () => {
+    const url = "https://go.43v.de/open?vault=Bear&file=Notes%2FPlan.md";
+    expect(hrefsIn(`see ${url}**`)).toEqual([url]);
   });
 });

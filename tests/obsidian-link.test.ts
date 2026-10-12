@@ -64,3 +64,28 @@ describe("findObsidianLinks", () => {
     expect(findObsidianLinks(text)).toEqual([]);
   });
 });
+
+describe("links wrapped in markup", () => {
+  it("drops the bold markers around an inline Markdown link", () => {
+    const links = findObsidianLinks(`**[the plan](${REDIRECT})**`);
+    expect(links[0]?.href).toBe(REDIRECT);
+    expect(links[0]?.label).toBe("obsidian-url-redirect-service");
+  });
+
+  it("drops emphasis and strike markers around a bare link", () => {
+    expect(findObsidianLinks(`*${REDIRECT}*`)[0]?.href).toBe(REDIRECT);
+    expect(findObsidianLinks(`~~${REDIRECT}~~`)[0]?.href).toBe(REDIRECT);
+    expect(findObsidianLinks(`**${REDIRECT}**`)[0]?.href).toBe(REDIRECT);
+  });
+
+  it("drops a bold marker after a direct URI", () => {
+    expect(findObsidianLinks("see obsidian://open?vault=Bear&file=Plan.md**")[0]?.uri).toBe(
+      "obsidian://open?vault=Bear&file=Plan.md",
+    );
+  });
+
+  it("keeps a note name ending in an extension, and drops a bare trailing marker like GFM", () => {
+    expect(findObsidianLinks("https://go.43v.de/open?file=month_notes.md")[0]?.file).toBe("month_notes.md");
+    expect(findObsidianLinks("https://go.43v.de/open?file=month_")[0]?.file).toBe("month");
+  });
+});

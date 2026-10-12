@@ -11,6 +11,7 @@
  */
 
 import { z } from "zod";
+import { trimLinkMarkup } from "./link-boundary";
 
 /** Hosts that serve `/open?vault=…&file=…` links forwarding to Obsidian. */
 const REDIRECT_HOSTS = new Set(["go.43v.de"]);
@@ -37,30 +38,12 @@ export type ObsidianLink = z.infer<typeof obsidianLinkSchema>;
 /** Anything that could be a link, ending at the first delimiter that cannot appear in one. */
 const CANDIDATE = /(?:obsidian|https?):\/\/[^\s<>"'`]+/gi;
 const OBSIDIAN_PROTOCOL = "obsidian:";
-const TRAILING_PUNCTUATION = /[.,;:!?]+$/;
 
 function toUrl(value: string): URL | null {
   try {
     return new URL(value);
   } catch {
     return null;
-  }
-}
-
-/**
- * Drops sentence punctuation, and closing brackets the link itself never opened:
- * prose writes `(see https://go.43v.de/open?vault=Bear&file=a%2Fb.md)`.
- */
-function trimLink(raw: string): string {
-  let value = raw.replace(TRAILING_PUNCTUATION, "");
-  for (;;) {
-    const last = value[value.length - 1];
-    if (last !== ")" && last !== "]") return value;
-    const opener = last === ")" ? "(" : "[";
-    const opened = value.split(opener).length - 1;
-    const closed = value.split(last).length - 1;
-    if (closed <= opened) return value;
-    value = value.slice(0, -1);
   }
 }
 
@@ -115,7 +98,7 @@ function fromRedirect(href: string): ObsidianLink | null {
 export function findObsidianLinks(text: string): ObsidianLink[] {
   const found = new Map<string, ObsidianLink>();
   for (const match of text.matchAll(CANDIDATE)) {
-    const href = trimLink(match[0]);
+    const href = trimLinkMarkup(match[0]);
     const link = fromObsidianUri(href) ?? fromRedirect(href);
     if (link && !found.has(link.uri)) found.set(link.uri, link);
   }
