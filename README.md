@@ -46,6 +46,8 @@ Paseo's own external opener accepts `http(s)` URLs only, so an `obsidian://` URL
 
 When the daemon cannot do that (remote daemon, no Obsidian, unknown platform), a redirect-service link falls back to the browser through the app's own opener, and a bare `obsidian://` link reports the failure on the row. On iOS and Android the app opens the URI itself.
 
+A headless daemon is the common case for the fallback: `xdg-open` is installed but has no desktop session to hand the URI to, so the button opens the redirect link in the browser of whichever device you are looking at.
+
 ## Rendering
 
 A timeline entry can only be replaced as a whole, so a message that gains a button is rendered by this plugin: prose, headings, lists, quotes, tables, fenced code, and inline formatting. Messages without an Obsidian link keep Paseo's own (richer) Markdown. Inside a replaced message, images appear as links rather than pictures.
