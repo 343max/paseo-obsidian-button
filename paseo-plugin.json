@@ -1,0 +1,9 @@
+{
+  "id": "paseo-obsidian-button",
+  "name": "Obsidian links",
+  "description": "Adds an Open in Obsidian button to messages that link to a note.",
+  "media": [],
+  "requirements": {
+    "paseo": ">=0.11.2"
+  }
+}
